@@ -1,4 +1,4 @@
-name: Grocery App CI
+name: Grocery App CI/CD
 
 on:
   push:
@@ -6,22 +6,26 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. गिटहब पर आपका कोड लेकर आना
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # 2. Node.js सेटअप करना
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
+      # 3. बैकएंड की डिपेंडेंसीज इंस्टॉल करना
       - name: Install Backend Dependencies
         working-directory: backend
         run: npm install
 
+      # 4. फ्रंटएंड की डिपेंडेंसीज इंस्टॉल करना और बिल्ड करना
       - name: Install Frontend Dependencies
         working-directory: client
         run: npm install
@@ -29,3 +33,30 @@ jobs:
       - name: Build Frontend
         working-directory: client
         run: npm run build
+
+      # ==========================================
+      # 🚀 यहाँ से नया डॉकर का काम शुरू होता है
+      # ==========================================
+
+      # 5. आपके सीक्रेट्स की मदद से Docker Hub में लॉगिन करना
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 6. बैकएंड की डॉकर इमेज बनाना और पुश करना
+      - name: Build and push Backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/grocery-backend:latest
+
+      # 7. फ्रंटएंड की डॉकर इमेज बनाना और पुश करना
+      - name: Build and push Frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./client
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/grocery-frontend:latest
