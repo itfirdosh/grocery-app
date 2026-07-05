@@ -19,7 +19,7 @@ const app = express();
 // ✅ FIXED
 connectDB();
 connectCloudinary();
-const allowedOrigins = ["http://localhost:5173"];
+const allowedOrigins = ["http://localhost:5173","http://localhost:3000"];
 
 // middlewares
 app.use(express.json());
